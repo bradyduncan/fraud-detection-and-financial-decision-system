@@ -1,16 +1,26 @@
-import pandas as pd 
+import pandas as pd
 from pathlib import Path
 from src.config import *
 from src.utils import *
 
+def _read_csv_arrow(path: str) -> pd.DataFrame:
+    """
+    Read CSV with pyarrow-backed dtypes to reduce peak memory usage.
+    Falls back to default engine if pyarrow is unavailable.
+    """
+    try:
+        return pd.read_csv(path, engine="pyarrow", dtype_backend="pyarrow")
+    except Exception:
+        return pd.read_csv(path, low_memory=False)
+
 def merge_transaction_identity(transaction_file, identity_file, output_file=None):    
     # Load transaction data
     print("Loading transaction data")
-    transaction_df = pd.read_csv(transaction_file)
+    transaction_df = _read_csv_arrow(transaction_file)
     
     # Load identity data
     print("Loading identity data")
-    identity_df = pd.read_csv(identity_file)
+    identity_df = _read_csv_arrow(identity_file)
     
     # Analyze coverage
     print("Analyzing identity coverage")

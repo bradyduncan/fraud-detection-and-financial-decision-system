@@ -4,6 +4,14 @@
 
 import pandas as pd
 import numpy as np
+from pandas.api.types import (
+    is_numeric_dtype,
+    is_datetime64_any_dtype,
+    is_categorical_dtype,
+    is_bool_dtype,
+    is_string_dtype,
+    is_object_dtype,
+)
 from src.config import *
 from src.utils import *
 

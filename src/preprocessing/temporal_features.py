@@ -1,6 +1,7 @@
 # Feature engineering for the temporal features 
 # src/temporal_features.py
 
+import numpy as np
 import pandas as pd
 
 
@@ -68,15 +69,16 @@ def add_temporal_features(
     Returns:
         DataFrame with added features.
     """
+    print("\nAdding temporal features")
     if not inplace:
-        df = df.copy()
+        df = df.copy(deep=False)
 
     if time_col not in df.columns:
         raise KeyError(f"Expected time_col='{time_col}' in dataframe columns.")
     if amount_col not in df.columns:
         add_amount_rolling = False
 
-    # FDefault entity definitions
+    # Default entity definitions
     if entity_defs is None:
         entity_defs = {
             "card1": ["card1"],
@@ -125,27 +127,27 @@ def add_temporal_features(
             label = _window_label(w)
             window_str = f"{w}s"
 
-            # Rolling count of prior transactions in the window; exludes current timestamp - no leakage.
-            roll_count = (
-                g.rolling(window=window_str, on=ts_col, closed="left")[ts_col]
-                .count()
-                .reset_index(level=cols, drop=True)
-            )
-            df[f"tf_{entity_name}_txn_count_{label}"] = roll_count.astype("float32")
+            # Rolling count of prior transactions in the window; excludes current timestamp - no leakage.
+            roll_count = np.full(len(df), np.nan, dtype="float32")
+            for _, gdf in g:
+                roll = gdf.rolling(window=window_str, on=ts_col, closed="left")[ts_col].count()
+                roll_count[gdf.index] = roll.to_numpy(dtype="float32")
+            df[f"tf_{entity_name}_txn_count_{label}"] = roll_count
 
             if add_amount_rolling and amount_col in df.columns:
                 # Rolling amount stats (prior only)
-                roll_amt = g.rolling(window=window_str, on=ts_col, closed="left")[amount_col]
+                amt_mean = np.full(len(df), np.nan, dtype="float32")
+                amt_std = np.full(len(df), np.nan, dtype="float32")
+                amt_sum = np.full(len(df), np.nan, dtype="float32")
+                for _, gdf in g:
+                    roll_amt = gdf.rolling(window=window_str, on=ts_col, closed="left")[amount_col]
+                    amt_mean[gdf.index] = roll_amt.mean().to_numpy(dtype="float32")
+                    amt_std[gdf.index] = roll_amt.std().to_numpy(dtype="float32")
+                    amt_sum[gdf.index] = roll_amt.sum().to_numpy(dtype="float32")
 
-                df[f"tf_{entity_name}_amt_mean_{label}"] = (
-                    roll_amt.mean().reset_index(level=cols, drop=True).astype("float32")
-                )
-                df[f"tf_{entity_name}_amt_std_{label}"] = (
-                    roll_amt.std().reset_index(level=cols, drop=True).astype("float32")
-                )
-                df[f"tf_{entity_name}_amt_sum_{label}"] = (
-                    roll_amt.sum().reset_index(level=cols, drop=True).astype("float32")
-                )
+                df[f"tf_{entity_name}_amt_mean_{label}"] = amt_mean
+                df[f"tf_{entity_name}_amt_std_{label}"] = amt_std
+                df[f"tf_{entity_name}_amt_sum_{label}"] = amt_sum
 
                 if add_velocity:
                     # Sum per hour/day-equivalent (normalized to per-second)
@@ -161,5 +163,7 @@ def add_temporal_features(
 
     # Clean up internal column
     df = df.drop(columns=[ts_col])
+    
+    print("\nTemporal Feature Engineering Completed")
 
     return df
