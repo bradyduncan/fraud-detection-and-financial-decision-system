@@ -11,10 +11,11 @@ def run_full_pipeline(save_intermediate=False):
     """
     Run preprocessing pipeline in correct order:
     1. Merge transaction + identity
-    2. Drop columns with >90% missing
-    3. Impute remaining missing values
-    4. Encode categorical variables
-    5. Feature selection
+    2. Add temporal features
+    3. Drop columns with >90% missing
+    4. Impute remaining missing values
+    5. Encode categorical variables
+    6. Feature selection
     
     Args:
         save_intermediate: Save CSV at each step (for debugging)
