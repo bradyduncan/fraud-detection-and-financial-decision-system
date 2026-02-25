@@ -1,13 +1,10 @@
 import pandas as pd
 from pathlib import Path
 from src.config import *
-from src.utils import *
 
 def _read_csv_arrow(path: str) -> pd.DataFrame:
-    """
-    Read CSV with pyarrow-backed dtypes to reduce peak memory usage.
-    Falls back to default engine if pyarrow is unavailable.
-    """
+    # Read CSV with pyarrow-backed dtypes to reduce peak memory usage.
+
     try:
         return pd.read_csv(path, engine="pyarrow", dtype_backend="pyarrow")
     except Exception:

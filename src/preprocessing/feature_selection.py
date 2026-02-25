@@ -1,19 +1,28 @@
 """
 Feature selection module for IEEE-CIS Fraud Detection preprocessing pipeline.
 Applies three sequential filters, preserving 'isFraud' and 'TransactionID' by default.
+
+Train/Val workflow:
+    # Fit on train — returns (df, selected_feature_names)
+    df_train_sel, features = select_features(df_train, output_file=...)
+
+    # Transform val — pass the saved feature list
+    df_val_sel, _ = select_features(df_val, feature_list=features)
 """
 
 import numpy as np
 import pandas as pd
+import joblib
+from pathlib import Path
 from sklearn.feature_selection import mutual_info_classif
+from src.config import PROCESSED_DIR
 
-PROTECTED_COLS = ["isFraud", "TransactionID"]
-
+PROTECTED_COLS = ["isFraud"] 
+FEATURE_LIST_PATH = PROCESSED_DIR / "models" / "selected_features.joblib"
 
 def _get_protected(df: pd.DataFrame) -> list:
-    """Return protected columns that actually exist in the dataframe."""
+   # Return protected columns that actually exist in the dataframe.
     return [c for c in PROTECTED_COLS if c in df.columns]
-
 
 def _near_zero_variance_filter(
     df: pd.DataFrame,
@@ -195,14 +204,17 @@ def select_features(
     mi_threshold: float = 0.0,
     mi_sample_size: int = 50_000,
     output_file=None,
-) -> pd.DataFrame:
+    feature_list: list | None = None,
+    save_feature_list: bool = False,
+) -> tuple[pd.DataFrame, list]:
     """
     Run the full feature selection pipeline.
 
-    Sequential filters applied:
-        1. Near-zero variance removal
-        2. Target-aware pairwise correlation removal
-        3. Mutual information filter
+    Two modes:
+      FIT mode (feature_list=None):   Learns which features to keep from df.
+                                       Use on TRAINING data only.
+      TRANSFORM mode (feature_list):  Applies a pre-computed feature list.
+                                       Use on VALIDATION / TEST data.
 
     Args:
         df: Fully numeric dataframe (post-encoding, post-imputation).
@@ -212,35 +224,45 @@ def select_features(
         mi_threshold: Minimum mutual information score to retain feature.
         mi_sample_size: Subsample size for MI computation.
         output_file: If provided, save result to this path.
+        feature_list: If provided, skip filters and just select these columns.
+        save_feature_list: If True, save selected feature names to disk.
 
     Returns:
-        Filtered dataframe ready for modeling.
+        (filtered_df, selected_feature_names)
     """
+    protected = _get_protected(df)
+
+    # --- TRANSFORM mode: just apply a saved feature list ---
+    if feature_list is not None:
+        keep = [c for c in feature_list if c in df.columns] + [c for c in protected if c in df.columns]
+        keep = list(dict.fromkeys(keep))   # preserve order, deduplicate
+        print(f"[Feature Selection] Transform mode: keeping {len(keep)} pre-selected features")
+        df = df[keep]
+        if output_file is not None:
+            df.to_csv(output_file, index=False)
+        return df, feature_list
+
+    # --- FIT mode: run all three filters ---
     initial_cols = len(df.columns)
-    print(f"Starting feature selection with {initial_cols} columns, {len(df)} rows")
+    print(f"\n[Feature Selection] Fit mode: {initial_cols} columns, {len(df)} rows")
 
     # Step 1: Near-zero variance
-    df = _near_zero_variance_filter(
-        df, dominant_freq_threshold=nzv_dominant_freq
-    )
+    df = _near_zero_variance_filter(df, dominant_freq_threshold=nzv_dominant_freq)
     after_nzv = len(df.columns)
 
     # Step 2: Pairwise correlation (target-aware)
-    df = _correlation_filter(
-        df, target_col=target_col, corr_threshold=corr_threshold
-    )
+    df = _correlation_filter(df, target_col=target_col, corr_threshold=corr_threshold)
     after_corr = len(df.columns)
 
     # Step 3: Mutual information
     df = _mutual_information_filter(
-        df,
-        target_col=target_col,
-        mi_threshold=mi_threshold,
-        sample_size=mi_sample_size,
+        df, target_col=target_col, mi_threshold=mi_threshold, sample_size=mi_sample_size
     )
     after_mi = len(df.columns)
 
-    # Summary
+    # Record which features were kept (excluding protected cols)
+    selected = [c for c in df.columns if c not in protected]
+
     print()
     print("Feature Selection Summary:")
     print(f"  Initial features:           {initial_cols}")
@@ -249,8 +271,22 @@ def select_features(
     print(f"  After mutual information:   {after_mi} (-{after_corr - after_mi})")
     print(f"  Total removed:              {initial_cols - after_mi}")
 
+    if save_feature_list:
+        path = Path(FEATURE_LIST_PATH)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        joblib.dump(selected, path)
+        print(f"  Selected feature list saved to {path}")
+
     if output_file is not None:
         df.to_csv(output_file, index=False)
-        print(f"Saved to {output_file}")
+        print(f"  Saved to {output_file}")
 
-    return df
+    return df, selected
+
+
+def load_feature_list(path=None) -> list:
+    """Load a previously saved feature list from disk."""
+    path = Path(path or FEATURE_LIST_PATH)
+    features = joblib.load(path)
+    print(f"[Feature Selection] Loaded {len(features)} features from {path}")
+    return features
