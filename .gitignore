@@ -2,3 +2,12 @@
 .ipynb_checkpoints/
 .vscode/
 __pycache__/
+data/raw/
+data/processed/splits/
+data/processed/models/
+data/processed/feature_analysis/
+*.csv
+*.joblib
+data\processed\models\*.joblib
+data\processed\models\
+data\processed\splits\
