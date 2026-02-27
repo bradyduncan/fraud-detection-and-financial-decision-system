@@ -4,7 +4,6 @@
 import numpy as np
 import pandas as pd
 
-
 def _as_time_column_from_transaction_dt(series: pd.Series) -> pd.Series:
     """
     Convert TransactionDT-style seconds-since-origin into a pandas datetime column.
