@@ -43,9 +43,9 @@ def train_and_evaluate(
     Train XGBoost on train set and evaluate on validation set.
     """
     params = {
-        "n_estimators": 2000,
+        "n_estimators": 4000,
         "max_depth": 5,
-        "learning_rate": 0.1,
+        "learning_rate": .1,
         "subsample": 0.8,
         "colsample_bytree": 0.8,
         "objective": "binary:logistic",
@@ -54,7 +54,7 @@ def train_and_evaluate(
         "tree_method": "hist",
         "early_stopping_rounds": 20,
         "min_child_weight": 5,
-        "gamma": .1,
+        "gamma": .5,
     }
     if "scale_pos_weight" not in params:
         pos = int((y_train == 1).sum())
@@ -114,5 +114,5 @@ def save_model(model: XGBClassifier, path: Path | None = None):
 
 if __name__ == "__main__":
     X_train, y_train, X_val, y_val = load_splits()
-    model, _, _ = train_and_evaluate(X_train, y_train, X_val, y_val, threshold=0.5)
+    model, _, _ = train_and_evaluate(X_train, y_train, X_val, y_val, threshold=0.4)
     save_model(model)
