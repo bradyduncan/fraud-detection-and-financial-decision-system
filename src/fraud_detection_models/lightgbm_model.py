@@ -1,17 +1,4 @@
-"""
-LightGBM Model — Standalone Training & Evaluation
-Part of: Intelligent Fraud Detection and Financial Decision Systems
-
-Usage:
-    python -m src.models.lightgbm_model
-
-Loads preprocessed splits from disk, trains a LightGBM classifier,
-evaluates on validation set, and saves the trained model.
-
-Fixes applied:
-    - TransactionID dropped from features (identifier, not predictive)
-    - scale_pos_weight reduced to 7 (27 was too aggressive)
-"""
+# LightGBM Model — Standalone Training & Evaluation
 
 import joblib
 import numpy as np
@@ -28,21 +15,16 @@ from sklearn.metrics import (
     average_precision_score,
 )
 
-# ---------------------------------------------------------------------------
-# Paths
-# ---------------------------------------------------------------------------
 BASE_DIR   = Path(__file__).resolve().parents[2]
 SPLITS_DIR = BASE_DIR / "data" / "processed" / "splits"
 MODELS_DIR = BASE_DIR / "data" / "processed" / "models"
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
-
-# ---------------------------------------------------------------------------
 # LightGBM hyperparameters
 # scale_pos_weight: controls how much the model penalises missing fraud cases
 # Too high (27) → model overcorrects and fails to learn
 # Start at 7 — can tune upward if recall is too low
-# ---------------------------------------------------------------------------
+
 LGBM_PARAMS = {
     "objective":          "binary",
     "metric":             ["auc", "binary_logloss"],
@@ -63,9 +45,6 @@ LGBM_PARAMS = {
     "verbose":            -1,
 }
 
-# ---------------------------------------------------------------------------
-# Load splits
-# ---------------------------------------------------------------------------
 def load_splits():
     print("Loading preprocessed splits from disk...")
     X_train = joblib.load(SPLITS_DIR / "X_train.joblib")
@@ -92,10 +71,6 @@ def load_splits():
     print(f"  Dtypes  : {X_train.dtypes.unique()}")
     return X_train, y_train, X_val, y_val
 
-
-# ---------------------------------------------------------------------------
-# Train
-# ---------------------------------------------------------------------------
 def train(X_train, y_train, X_val, y_val):
     print("\nTraining LightGBM model...")
 
@@ -114,10 +89,6 @@ def train(X_train, y_train, X_val, y_val):
     print(f"\nBest iteration: {model.best_iteration_}")
     return model
 
-
-# ---------------------------------------------------------------------------
-# Evaluate
-# ---------------------------------------------------------------------------
 def evaluate(model, X_val, y_val, threshold=0.5):
     print("\n" + "="*55)
     print("LIGHTGBM EVALUATION RESULTS")
@@ -188,20 +159,12 @@ def evaluate(model, X_val, y_val, threshold=0.5):
         "y_prob":    y_prob,
     }
 
-
-# ---------------------------------------------------------------------------
-# Save model
-# ---------------------------------------------------------------------------
 def save_model(model, path=None):
     path = Path(path or MODELS_DIR / "lightgbm_model.joblib")
     joblib.dump(model, path)
     print(f"\nModel saved to {path}")
     return path
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 def main():
     X_train, y_train, X_val, y_val = load_splits()
     model   = train(X_train, y_train, X_val, y_val)
@@ -215,7 +178,6 @@ def main():
     print("="*55)
 
     return model, results
-
 
 if __name__ == "__main__":
     main()

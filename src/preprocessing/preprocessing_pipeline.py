@@ -1,41 +1,19 @@
 from sklearn.model_selection import train_test_split
+from src.preprocessing.data_loader_merger import merge_transaction_identity
+from src.preprocessing.temporal_features import add_temporal_features
+from src.preprocessing.missing_handler import drop_extreme_missing, MissingValueImputer
+from src.preprocessing.encoder import CategoricalEncoder
+from feature_selection import select_features
+import joblib
 from src.config import (
     TRAIN_TRANSACTION_FILE, 
     TRAIN_IDENTITY_FILE, 
     RANDOM_SEED, 
     PROCESSED_DIR
 )
-from src.preprocessing.data_loader_merger import merge_transaction_identity
-from src.preprocessing.data_loader_merger import merge_transaction_identity
-from src.preprocessing.temporal_features import add_temporal_features
-from src.preprocessing.missing_handler import drop_extreme_missing, MissingValueImputer
-from src.preprocessing.encoder import CategoricalEncoder
-from src.preprocessing.feature_selection import select_features
-import joblib
+
 
 def run_full_pipeline(val_size: float = 0.2, save_artifacts: bool = True):
-    """
-    Run the full preprocessing pipeline with a clean train/val split.
-
-    Steps run on the full data (no leakage risk):
-        1. Merge transaction + identity (left join)
-        2. Add temporal features (closed="left", only uses past rows)
-        3. Drop columns with >90% missing (structural filter, no stats learned)
-        4. Split into train and validation sets
-
-    Steps run on TRAIN only, then applied to val:
-        5. Impute missing values  (fit on train → transform both)
-        6. Encode categorical columns (fit on train → transform both)
-        7. Feature selection       (fit on train → apply same features to val)
-
-    Args:
-        val_size:       Fraction of data to use for validation (default 0.20).
-        save_artifacts: Save fitted imputer, encoder, and feature list to disk.
-
-    Returns:
-        (X_train, y_train, X_val, y_val)
-    """
-
     # Step 1: Merge transaction + identity data
     merged_df = merge_transaction_identity(
         TRAIN_TRANSACTION_FILE,
