@@ -3,7 +3,7 @@ from src.preprocessing.data_loader_merger import merge_transaction_identity
 from src.preprocessing.temporal_features import add_temporal_features
 from src.preprocessing.missing_handler import drop_extreme_missing, MissingValueImputer
 from src.preprocessing.encoder import CategoricalEncoder
-from feature_selection import select_features
+from src.preprocessing.feature_selection import select_features
 import joblib
 from src.config import (
     TRAIN_TRANSACTION_FILE, 

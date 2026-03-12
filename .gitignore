@@ -10,4 +10,4 @@ data/processed/feature_analysis/
 *.joblib
 data\processed\models\*.joblib
 data\processed\models\
-data\processed\splits\
+data\processed\splits\*.joblib
