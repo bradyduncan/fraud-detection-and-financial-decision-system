@@ -3,7 +3,7 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from catboost import CatBoostClassifier
+from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -40,32 +40,35 @@ def train_and_evaluate(
     model_params: dict | None = None,
 ):
     """
-    Train CatBoost on train set and evaluate on validation set.
+    Train HistGradientBoosting on train set and evaluate on validation set.
     """
     params = {
-        "iterations": 4000,
-        "depth": 6,
-        "learning_rate": 0.1,
-        "loss_function": "Logloss",
-        "eval_metric": "AUC",
-        "random_seed": RANDOM_SEED,
-        "verbose": False,
-        "allow_writing_files": False,
-        "od_type": "Iter",
-        "od_wait": 20,
-        "l2_leaf_reg": 5,
-        "subsample": 0.8,
+        "loss": "log_loss",
+        "learning_rate": 0.05,
+        "max_iter": 400,
+        "max_depth": 6,
+        "min_samples_leaf": 20,
+        "l2_regularization": 1.0,
+        "max_bins": 255,
+        "early_stopping": True,
+        "n_iter_no_change": 20,
+        "validation_fraction": None,
+        "random_state": RANDOM_SEED,
     }
-    if "scale_pos_weight" not in params:
+    if "positive_class_weight" not in params:
         pos = int((y_train == 1).sum())
         neg = int((y_train == 0).sum())
         if pos > 0:
-            params["scale_pos_weight"] = 0.55 * neg / pos
+            params["positive_class_weight"] = 0.5 * neg / pos
     if model_params:
         params.update(model_params)
 
-    model = CatBoostClassifier(**params)
-    model.fit(X_train, y_train, eval_set=(X_val, y_val), use_best_model=True)
+    positive_class_weight = float(params.pop("positive_class_weight", 1.0))
+    sample_weight = pd.Series(1.0, index=y_train.index, dtype="float64")
+    sample_weight.loc[y_train == 1] = positive_class_weight
+
+    model = HistGradientBoostingClassifier(**params)
+    model.fit(X_train, y_train, sample_weight=sample_weight)
 
     train_proba = model.predict_proba(X_train)[:, 1]
     train_pred = (train_proba >= threshold).astype(int)
@@ -101,11 +104,11 @@ def train_and_evaluate(
     return model, train_metrics, val_metrics
 
 
-def save_model(model: CatBoostClassifier, path: Path | None = None):
+def save_model(model: HistGradientBoostingClassifier, path: Path | None = None):
     """
-    Save trained model.
+    Save trained model to disk.
     """
-    path = path or (PROCESSED_DIR / "models" / "catboost.joblib")
+    path = path or (PROCESSED_DIR / "models" / "histgb.joblib")
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)
     print(f"Model saved to: {path}")
@@ -113,5 +116,5 @@ def save_model(model: CatBoostClassifier, path: Path | None = None):
 
 if __name__ == "__main__":
     X_train, y_train, X_val, y_val = load_splits()
-    model, _, _ = train_and_evaluate(X_train, y_train, X_val, y_val, threshold=0.55)
+    model, _, _ = train_and_evaluate(X_train, y_train, X_val, y_val, threshold=0.5)
     save_model(model)
