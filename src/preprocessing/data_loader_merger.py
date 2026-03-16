@@ -4,7 +4,6 @@ from src.config import *
 
 def _read_csv_arrow(path: str) -> pd.DataFrame:
     # Read CSV with pyarrow-backed dtypes to reduce peak memory usage.
-
     try:
         return pd.read_csv(path, engine="pyarrow", dtype_backend="pyarrow")
     except Exception:

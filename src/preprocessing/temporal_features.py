@@ -36,38 +36,6 @@ def add_temporal_features(
     add_velocity: bool = True,
     inplace: bool = False,
 ) -> pd.DataFrame:
-    """
-    Add temporal features based on event history per specified entity.
-      
-    Features (per entity):
-      - time_since_last_seconds
-      - is_first_txn (indicator) 
-      - rolling txn_count in past window(s)
-      - (optional, default=True) rolling amount stats (mean, std, sum) in past window(s)
-
-    Key:
-      - txn: transaction
-
-    Args:
-        df: merged dataframe.
-        time_col: TransactionDT column.
-        amount_col: amount column.
-        transaction_id_col: unique transaction id col.
-        entity_defs: dict mapping entity_name -> list of columns defining that entity.
-            Example:
-                {
-                  "card1": ["card1"],
-                  "card1_addr1": ["card1", "addr1"],
-                  "email": ["P_emaildomain"],
-                }
-        windows_seconds: list of rolling window sizes in seconds.
-        add_amount_rolling: include rolling stats on TransactionAmt.
-        add_velocity: include simple "amount velocity" features derived from rolling sums.
-        inplace: if True mutate df; otherwise work on a copy.
-
-    Returns:
-        DataFrame with added features.
-    """
     print("\nAdding temporal features")
     if not inplace:
         df = df.copy(deep=False)

@@ -1,14 +1,6 @@
-"""
-Feature selection module for IEEE-CIS Fraud Detection preprocessing pipeline.
-Applies three sequential filters, preserving 'isFraud' and 'TransactionID' by default.
 
-Train/Val workflow:
-    # Fit on train — returns (df, selected_feature_names)
-    df_train_sel, features = select_features(df_train, output_file=...)
-
-    # Transform val — pass the saved feature list
-    df_val_sel, _ = select_features(df_val, feature_list=features)
-"""
+# Feature selection module for IEEE-CIS Fraud Detection preprocessing pipeline.
+# Applies three sequential filters, preserving 'isFraud' and 'TransactionID' by default.
 
 import numpy as np
 import pandas as pd
@@ -27,19 +19,7 @@ def _get_protected(df: pd.DataFrame) -> list:
 def _near_zero_variance_filter(
     df: pd.DataFrame,
     dominant_freq_threshold: float = 0.98,
-    nunique_min: int = 2,
-) -> pd.DataFrame:
-    """
-    Remove features with near-zero variance.
-
-    Args:
-        df: Input dataframe (fully numeric, post-encoding).
-        dominant_freq_threshold: Max allowed frequency ratio for the most common value (default .98).
-        nunique_min: Minimum number of unique values required.
-
-    Returns:
-        Filtered dataframe.
-    """
+    nunique_min: int = 2,) -> pd.DataFrame:
     protected = _get_protected(df)
     drop_cols = []
 
@@ -72,17 +52,6 @@ def _correlation_filter(
     target_col: str = "isFraud",
     corr_threshold: float = 0.95,
 ) -> pd.DataFrame:
-    """
-    Remove redundant features using pairwise Pearson correlation.
-
-    Args:
-        df: Input dataframe (fully numeric).
-        target_col: Name of the binary target column.
-        corr_threshold: Correlation threshold above which one feature in a pair is dropped (default .95).
-
-    Returns:
-        Filtered dataframe.
-    """
     protected = _get_protected(df)
     feature_cols = [c for c in df.columns if c not in protected]
 
@@ -134,21 +103,6 @@ def _mutual_information_filter(
     random_state: int = 42,
     sample_size: int = 50_000,
 ) -> pd.DataFrame:
-    """
-    Remove features with negligible mutual information with the target.
-
-    Args:
-        df: Input dataframe (fully numeric).
-        target_col: Name of the binary target column.
-        mi_threshold: Minimum MI score to keep a feature. Default 0.0
-            drops only features with effectively zero information.
-        n_neighbors: Number of neighbors for MI estimation (sklearn param).
-        random_state: Random seed for reproducibility.
-        sample_size: Max rows to use for MI estimation (for speed).
-
-    Returns:
-        Filtered dataframe.
-    """
     protected = _get_protected(df)
     feature_cols = [c for c in df.columns if c not in protected]
 
@@ -207,29 +161,6 @@ def select_features(
     feature_list: list | None = None,
     save_feature_list: bool = False,
 ) -> tuple[pd.DataFrame, list]:
-    """
-    Run the full feature selection pipeline.
-
-    Two modes:
-      FIT mode (feature_list=None):   Learns which features to keep from df.
-                                       Use on TRAINING data only.
-      TRANSFORM mode (feature_list):  Applies a pre-computed feature list.
-                                       Use on VALIDATION / TEST data.
-
-    Args:
-        df: Fully numeric dataframe (post-encoding, post-imputation).
-        target_col: Binary target column name.
-        nzv_dominant_freq: Threshold for near-zero variance filter.
-        corr_threshold: Pearson correlation threshold for redundancy.
-        mi_threshold: Minimum mutual information score to retain feature.
-        mi_sample_size: Subsample size for MI computation.
-        output_file: If provided, save result to this path.
-        feature_list: If provided, skip filters and just select these columns.
-        save_feature_list: If True, save selected feature names to disk.
-
-    Returns:
-        (filtered_df, selected_feature_names)
-    """
     protected = _get_protected(df)
 
     # --- TRANSFORM mode: just apply a saved feature list ---
@@ -282,7 +213,6 @@ def select_features(
         print(f"  Saved to {output_file}")
 
     return df, selected
-
 
 def load_feature_list(path=None) -> list:
     """Load a previously saved feature list from disk."""
