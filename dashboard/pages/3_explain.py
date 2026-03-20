@@ -14,17 +14,17 @@ from dashboard.utils import (
     render_sidebar, metric_card, USER_COLORS
 )
 
-# ── Paths ──────────────────────────────────────────────────────────────────
+# Paths
 BASE_DIR       = Path(__file__).resolve().parents[2]
 PROCESSED_DIR  = BASE_DIR / "data" / "processed"
 SHAP_PATH      = PROCESSED_DIR / "shap_values.csv"
 IMPORTANCE_PATH= PROCESSED_DIR / "shap_feature_importance.csv"
 
-# ── Sidebar ────────────────────────────────────────────────────────────────
+# Sidebar selection
 user, card = render_sidebar()
 color      = USER_COLORS.get(user, "#4f9cf9")
 
-# ── Load data ──────────────────────────────────────────────────────────────
+# Load Data with caching
 @st.cache_data
 def load_shap_data():
     shap_df       = pd.read_csv(SHAP_PATH)
@@ -46,7 +46,7 @@ meta_cols    = ["demo_user", "demo_card", "isFraud"] + \
                [c for c in card_shap.columns if c.startswith("val_")]
 feature_cols = [c for c in card_shap.columns if c not in meta_cols]
 
-# ── Page Header ────────────────────────────────────────────────────────────
+# Page Header with custom styling
 st.markdown(f"""
 <div style='margin-bottom: 32px;'>
     <p style='font-size: 12px; color: #6b7280; text-transform: uppercase;
@@ -62,7 +62,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Top Metrics ────────────────────────────────────────────────────────────
+# Top Metrics Cards
 total_features  = len(feature_cols)
 top_feature     = importance_df.iloc[0]["feature"]
 top_importance  = importance_df.iloc[0]["importance"]
@@ -88,7 +88,7 @@ with c4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Global Feature Importance ──────────────────────────────────────────────
+# Global Feature Importance Chart
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>
@@ -128,7 +128,7 @@ fig_imp.update_layout(
 )
 st.plotly_chart(fig_imp, use_container_width=True)
 
-# ── Plain English Explanation ──────────────────────────────────────────────
+# Explanation box
 st.markdown(f"""
 <div style='background:#13161e; border:1px solid #1e2330;
             border-left:3px solid {color};
@@ -148,7 +148,7 @@ st.markdown(f"""
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── SHAP Comparison: Fraud vs Legit ───────────────────────────────────────
+# SHAP Comparison: Fraud vs Legit
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>
@@ -200,7 +200,7 @@ st.plotly_chart(fig_compare, use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Transaction-Level Explanation ─────────────────────────────────────────
+# Transaction-Level Explanation 
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>
@@ -304,7 +304,7 @@ else:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── SHAP Summary: Fraud Rate by Top Feature ────────────────────────────────
+# SHAP Summary: Fraud Rate by Top Feature
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>

@@ -14,22 +14,22 @@ from dashboard.utils import (
     render_sidebar, metric_card, fraud_badge, USER_COLORS
 )
 
-# ── Sidebar ────────────────────────────────────────────────────────────────
+# Sidebar
 user, card = render_sidebar()
 
-# ── Load data ──────────────────────────────────────────────────────────────
+# Load Data
 df      = load_predictions()
 card_df = get_user_card_data(df, user, card).copy()
 color   = USER_COLORS.get(user, "#4f9cf9")
 
-# ── Derived columns ────────────────────────────────────────────────────────
+# Derive classification outcomes for confusion matrix and metrics
 # Classification outcomes
 card_df["outcome"] = "True Negative"  # default — legit, predicted legit
 card_df.loc[(card_df["isFraud"] == 1) & (card_df["model_decision"] == 1), "outcome"] = "True Positive"
 card_df.loc[(card_df["isFraud"] == 1) & (card_df["model_decision"] == 0), "outcome"] = "False Negative"
 card_df.loc[(card_df["isFraud"] == 0) & (card_df["model_decision"] == 1), "outcome"] = "False Positive"
 
-# ── Confusion matrix values ────────────────────────────────────────────────
+# Confusion matrix counts
 tp = int((card_df["outcome"] == "True Positive").sum())
 tn = int((card_df["outcome"] == "True Negative").sum())
 fp = int((card_df["outcome"] == "False Positive").sum())
@@ -41,7 +41,7 @@ precision = tp / (tp + fp) if (tp + fp) > 0 else 0
 f1        = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0
 fpr       = fp / (fp + tn) if (fp + tn) > 0 else 0
 
-# ── Page Header ────────────────────────────────────────────────────────────
+# Page Header
 st.markdown(f"""
 <div style='margin-bottom: 32px;'>
     <p style='font-size: 12px; color: #6b7280; text-transform: uppercase;
@@ -57,7 +57,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Top Metrics ────────────────────────────────────────────────────────────
+# Top Metrics: Recall, FPR, Precision, F1
 c1, c2, c3, c4 = st.columns(4)
 with c1:
     metric_card("Fraud Caught (Recall)",
@@ -81,7 +81,7 @@ with c4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Two column: Confusion Matrix + Outcome Breakdown ──────────────────────
+# Two column: Confusion Matrix + Outcome Breakdown 
 left, right = st.columns([1, 1], gap="large")
 
 with left:
@@ -234,7 +234,7 @@ with right:
     )
     st.plotly_chart(fig_hist, use_container_width=True)
 
-# ── Transaction Table ──────────────────────────────────────────────────────
+# Transaction detail view
 st.markdown("<br>", unsafe_allow_html=True)
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;

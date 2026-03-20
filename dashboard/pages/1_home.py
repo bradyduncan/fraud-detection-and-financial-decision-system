@@ -14,15 +14,15 @@ from dashboard.utils import (
     render_sidebar, metric_card, USER_COLORS
 )
 
-# ── Sidebar ────────────────────────────────────────────────────────────────
+# Sidebar + User Selection
 user, card = render_sidebar()
 
-# ── Load data ──────────────────────────────────────────────────────────────
+# Load Data 
 df      = load_predictions()
 card_df = get_user_card_data(df, user, card)
 color   = USER_COLORS.get(user, "#4f9cf9")
 
-# ── Page Header ────────────────────────────────────────────────────────────
+# Page Header
 st.markdown(f"""
 <div style='margin-bottom: 32px;'>
     <p style='font-size: 12px; color: #6b7280; text-transform: uppercase; 
@@ -37,7 +37,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Key Metrics ────────────────────────────────────────────────────────────
+# Key Metrics 
 total_tx      = len(card_df)
 fraud_flagged = int(card_df["model_decision"].sum())
 actual_fraud  = int(card_df["isFraud"].sum())
@@ -66,7 +66,7 @@ with col4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Two column layout: Activity Chart + Recent Transactions ───────────────
+# Two column layout: Activity Chart + Recent Transactions 
 left, right = st.columns([3, 2], gap="large")
 
 with left:
@@ -155,7 +155,7 @@ with right:
         </div>
         """, unsafe_allow_html=True)
 
-# ── Bottom Row: Fraud Breakdown Donut ─────────────────────────────────────
+# Bottom Row: 3 Metrics + Charts
 st.markdown("<br>", unsafe_allow_html=True)
 b1, b2, b3 = st.columns(3)
 
