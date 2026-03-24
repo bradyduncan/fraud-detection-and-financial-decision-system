@@ -30,7 +30,6 @@ def merge_transaction_identity(transaction_file, identity_file, output_file=None
     print(f"Coverage: {coverage_pct:.2f}%")
     
     # Add has_identity flag
-    print(4, "Creating 'has_identity' feature")
     transaction_df = transaction_df.copy()
     transaction_df['has_identity'] = transaction_df['TransactionID'].isin(
         identity_df['TransactionID']

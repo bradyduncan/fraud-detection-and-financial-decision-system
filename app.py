@@ -10,7 +10,6 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Global CSS ─────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
@@ -54,7 +53,6 @@ footer { visibility: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Page router ────────────────────────────────────────────────────────────
 home    = st.Page("dashboard/pages/1_home.py", title="Overview",          icon="🏠")
 fraud   = st.Page("dashboard/pages/2_fraud.py", title="Fraud Alerts",      icon="🚨")
 explain = st.Page("dashboard/pages/3_explain.py", title="Explainability",  icon="🔍")

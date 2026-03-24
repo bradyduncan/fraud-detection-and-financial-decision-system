@@ -16,9 +16,10 @@ CARD6_MAP = {1.0: "Charge Card", 2.0: "Credit", 3.0: "Debit", 4.0: "Debit or Cre
 
 # Demo user definitions
 DEMO_USERS = {
-    "Alice":  {"Card 1": 7919,  "Card 2": 15066},
-    "Bob":    {"Card 1": 9500,  "Card 2": 6019},
-    "Carol":  {"Card 1": 15885, "Card 2": 7585},
+    "Alice": {"Card 1": 7919,  "Card 2": 15066},
+    "Bob":   {"Card 1": 9500,  "Card 2": 6019},
+    "Carol": {"Card 1": 15885, "Card 2": 7585},
+    "Dave":  {"Card 1": 9633,  "Card 2": 12695},
 }
 
 # User avatar colors for UI
@@ -26,6 +27,7 @@ USER_COLORS = {
     "Alice": "#4f9cf9",
     "Bob":   "#f97316",
     "Carol": "#a855f7",
+    "Dave":  "#22c55e",
 }
 
 @st.cache_data

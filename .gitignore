@@ -11,3 +11,8 @@ data/processed/feature_analysis/
 data\processed\models\*.joblib
 data\processed\models\
 data\processed\splits\*.joblib
+und_data.ipynb
+src\fraud_detection_models\lgbm_tune_scale_pos_weight.py
+.claude/
+**.ensemble_sweep.py
+src\fraud_detection_models\ensemble_sweep.py

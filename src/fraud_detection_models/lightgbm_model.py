@@ -29,8 +29,8 @@ LGBM_PARAMS = {
     "objective":          "binary",
     "metric":             ["auc", "binary_logloss"],
     "boosting_type":      "gbdt",
-    "n_estimators":       1000,
-    "learning_rate":      0.005,     # slower — forces more rounds
+    "n_estimators":       500,
+    "learning_rate":      0.05,     # slower — forces more rounds
     "num_leaves":         127,       # increased from 63 — more complex trees
     "max_depth":          -1,
     "min_child_samples":  10,        # reduced from 20
