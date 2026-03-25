@@ -40,7 +40,6 @@ def train_and_evaluate(
     model_params: dict | None = None,
 ):
     # Train XGBoost on train set and evaluate on validation set.
-    
     params = {
         "n_estimators": 4000,
         "max_depth": 5,

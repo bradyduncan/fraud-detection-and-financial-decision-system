@@ -39,9 +39,7 @@ def train_and_evaluate(
     threshold: float = 0.5,
     model_params: dict | None = None,
 ):
-    """
-    Train HistGradientBoosting on train set and evaluate on validation set.
-    """
+    # Train HistGradientBoosting on train set and evaluate on validation set.
     params = {
         "loss": "log_loss",
         "learning_rate": 0.05,
@@ -105,9 +103,6 @@ def train_and_evaluate(
 
 
 def save_model(model: HistGradientBoostingClassifier, path: Path | None = None):
-    """
-    Save trained model to disk.
-    """
     path = path or (PROCESSED_DIR / "models" / "histgb.joblib")
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)

@@ -215,7 +215,6 @@ def select_features(
     return df, selected
 
 def load_feature_list(path=None) -> list:
-    """Load a previously saved feature list from disk."""
     path = Path(path or FEATURE_LIST_PATH)
     features = joblib.load(path)
     print(f"[Feature Selection] Loaded {len(features)} features from {path}")

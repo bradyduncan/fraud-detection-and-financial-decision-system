@@ -39,9 +39,9 @@ def train_and_evaluate(
     threshold: float = 0.5,
     model_params: dict | None = None,
 ):
-    """
-    Train CatBoost on train set and evaluate on validation set.
-    """
+    
+    # Train CatBoost on train set and evaluate on validation set.
+
     params = {
         "iterations": 4000,
         "depth": 6,
