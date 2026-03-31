@@ -1,4 +1,4 @@
-# dashboard/pages/5_credit.py — Risk Score Tracker Page
+# dashboard/pages/5_credit.py - Risk Score Tracker Page
 
 import streamlit as st
 import pandas as pd
@@ -13,25 +13,61 @@ from dashboard.utils import (
     render_sidebar, metric_card, USER_COLORS
 )
 
-# ── Sidebar ────────────────────────────────────────────────────────────────
+# Sidebar
 user, card = render_sidebar()
 
-# ── Load data ──────────────────────────────────────────────────────────────
+# Load data
 df      = load_predictions()
 card_df = get_user_card_data(df, user, card).copy()
 color   = USER_COLORS.get(user, "#4f9cf9")
 
-# ── Risk Score Engineering ─────────────────────────────────────────────────
-# Risk score = rolling average of fraud_probability over time
-# Scaled to 0-100 where 0 = safest, 100 = highest risk
+# Risk score engineering: probability, fraud, flags, volatility, trend, amount.
 card_df = card_df.sort_values("transaction_date").reset_index(drop=True)
 
-# Rolling 30-transaction window risk score
-card_df["rolling_risk"] = (
+window = 30
+base_risk = (
     card_df["fraud_probability"]
-    .rolling(window=30, min_periods=1)
+    .rolling(window=window, min_periods=1)
     .mean() * 100
 )
+recent_fraud = (
+    card_df["isFraud"]
+    .rolling(window=window, min_periods=1)
+    .mean() * 100
+)
+recent_flags = (
+    card_df["model_decision"]
+    .rolling(window=window, min_periods=1)
+    .mean() * 100
+)
+volatility = (
+    card_df["fraud_probability"]
+    .rolling(window=window, min_periods=1)
+    .std()
+    .fillna(0) * 200
+).clip(0, 100)
+amt_mean = card_df["TransactionAmt"].mean()
+amt_std = card_df["TransactionAmt"].std()
+amt_z = (card_df["TransactionAmt"] - amt_mean) / (amt_std + 1e-9)
+amount_risk = (
+    amt_z
+    .rolling(window=window, min_periods=1)
+    .mean()
+    .clip(-2, 2)
+    .add(2)
+    .mul(25)
+)
+trend_points = (base_risk - base_risk.shift(window)).clip(lower=0)
+trend_scaled = (trend_points * 2).clip(0, 100)
+
+card_df["rolling_risk"] = (
+    0.40 * base_risk
+    + 0.20 * recent_fraud
+    + 0.10 * recent_flags
+    + 0.15 * volatility
+    + 0.10 * trend_scaled
+    + 0.05 * amount_risk
+).clip(0, 100)
 
 # Overall risk score (last 30 transactions)
 current_risk  = card_df["rolling_risk"].iloc[-1]
@@ -60,7 +96,7 @@ monthly_risk = card_df.groupby("month").agg(
     tx_count=("TransactionAmt", "count")
 ).reset_index()
 
-# ── Page Header ────────────────────────────────────────────────────────────
+# Page header
 st.markdown(f"""
 <div style='margin-bottom: 32px;'>
     <p style='font-size: 12px; color: #6b7280; text-transform: uppercase;
@@ -76,7 +112,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Top Metrics ────────────────────────────────────────────────────────────
+# Top metrics
 c1, c2, c3, c4 = st.columns(4)
 with c1:
     metric_card("Current Risk Score",
@@ -103,7 +139,7 @@ with c4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Risk Score Timeline ────────────────────────────────────────────────────
+# Risk score timeline
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>
@@ -171,7 +207,7 @@ st.plotly_chart(fig_timeline, use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Two column: Monthly risk + Risk distribution ───────────────────────────
+# Two column: monthly risk + distribution
 left, right = st.columns([1, 1], gap="large")
 
 with left:
@@ -258,7 +294,7 @@ with right:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Risk Recommendations ───────────────────────────────────────────────────
+# Risk recommendations
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>
