@@ -90,10 +90,8 @@ def train(X_train, y_train, X_val, y_val):
     return model
 
 def evaluate(model, X_val, y_val, threshold=0.5):
-    print("\n" + "="*55)
     print("LIGHTGBM EVALUATION RESULTS")
-    print("="*55)
-
+   
     # Predicted probabilities and labels
     y_prob = model.predict_proba(X_val)[:, 1]
     y_pred = (y_prob >= threshold).astype(int)
@@ -171,12 +169,9 @@ def main():
     results = evaluate(model, X_val, y_val, threshold=0.2)
     save_model(model)
 
-    print("\n" + "="*55)
     print(f"SUMMARY: AUC={results['auc']:.4f} | "
           f"Recall={results['recall']:.4f} | "
           f"Precision={results['precision']:.4f}")
-    print("="*55)
-
     return model, results
 
 if __name__ == "__main__":

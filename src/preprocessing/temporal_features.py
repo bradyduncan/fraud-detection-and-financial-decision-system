@@ -5,11 +5,9 @@ import numpy as np
 import pandas as pd
 
 def _as_time_column_from_transaction_dt(series: pd.Series) -> pd.Series:
-    """
-    Convert TransactionDT-style seconds-since-origin into a pandas datetime column.
-    We don't know the true origin; that's fine because we only use *relative ordering*
-    and time deltas / rolling windows.
-    """
+    # Convert TransactionDT-style seconds-since-origin into a pandas datetime column.
+    # We don't know the true origin; that's fine because we only use *relative ordering* and time deltas / rolling windows.
+
     # Origin doesn't matter, just order
     secs = pd.to_numeric(series, errors="coerce")
     return pd.Timestamp("1970-01-01") + pd.to_timedelta(secs, unit="s")

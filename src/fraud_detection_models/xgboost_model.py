@@ -39,9 +39,7 @@ def train_and_evaluate(
     threshold: float = 0.5,
     model_params: dict | None = None,
 ):
-    """
-    Train XGBoost on train set and evaluate on validation set.
-    """
+    # Train XGBoost on train set and evaluate on validation set.
     params = {
         "n_estimators": 4000,
         "max_depth": 5,
@@ -103,9 +101,6 @@ def train_and_evaluate(
 
 
 def save_model(model: XGBClassifier, path: Path | None = None):
-    """
-    Save trained model to disk.
-    """
     path = path or (PROCESSED_DIR / "models" / "xgboost.joblib")
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)
