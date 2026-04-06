@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 PREDICTIONS_PATH = BASE_DIR / "data" / "processed" / "predictions.csv"
 MODELS_DIR       = BASE_DIR / "data" / "processed" / "models"
 
-# ── Label decoders (label encoding reversal for display) ──────────────────
+# Label decoders (label encoding reversal for display) 
 CARD4_MAP = {1.0: "American Express", 2.0: "Discover", 3.0: "Mastercard", 4.0: "Visa"}
 CARD6_MAP = {1.0: "Charge Card", 2.0: "Credit", 3.0: "Debit", 4.0: "Debit or Credit"}
 
@@ -32,7 +32,6 @@ USER_COLORS = {
 
 @st.cache_data
 def load_predictions():
-    """Load predictions CSV — cached so it only reads once per session."""
     df = pd.read_csv(PREDICTIONS_PATH)
     df["transaction_date"] = pd.to_datetime(df["transaction_date"])
 
@@ -44,17 +43,11 @@ def load_predictions():
 
 
 def get_user_card_data(df, user: str, card: str) -> pd.DataFrame:
-    """Filter predictions for a specific demo user and card."""
     card1_val = DEMO_USERS[user][card]
     return df[df["card1"] == card1_val].copy()
 
 
 def render_sidebar() -> tuple[str, str]:
-    """
-    Renders the user + card selector in the sidebar.
-    Returns (selected_user, selected_card).
-    Stores selection in st.session_state so all pages share it.
-    """
     st.sidebar.markdown("""
     <div style='padding: 8px 0 20px 0;'>
         <p style='font-family: Syne, sans-serif; font-size: 22px; 
@@ -113,7 +106,6 @@ def render_sidebar() -> tuple[str, str]:
 
 def metric_card(label: str, value: str, delta: str | None = None,
                 color: str = "#4f9cf9", icon: str = ""):
-    """Renders a styled metric card."""
     delta_html = ""
     if delta:
         delta_color = "#ef4444" if "↑" in delta else "#22c55e"
@@ -133,7 +125,6 @@ def metric_card(label: str, value: str, delta: str | None = None,
 
 
 def fraud_badge(probability: float) -> str:
-    """Returns colored HTML badge based on fraud probability."""
     if probability >= 0.7:
         return "<span style='background:#ef444420; color:#ef4444; padding:2px 8px; border-radius:4px; font-size:12px;'>🔴 High Risk</span>"
     elif probability >= 0.3:

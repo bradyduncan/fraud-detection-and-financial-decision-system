@@ -102,9 +102,6 @@ def train_and_evaluate(
 
 
 def save_model(model: CatBoostClassifier, path: Path | None = None):
-    """
-    Save trained model.
-    """
     path = path or (PROCESSED_DIR / "models" / "catboost.joblib")
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)
