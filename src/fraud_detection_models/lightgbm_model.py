@@ -46,6 +46,13 @@ LGBM_PARAMS = {
 }
 
 def load_splits():
+    # Load the preprocessed train/val splits saved by the preprocessing pipeline.
+
+    # Why load from disk rather than re-running the pipeline? Preprocessing takes
+    # ~15-20 minutes on the full dataset. Saving the splits as joblib files lets
+    # model training scripts start immediately without re-running the pipeline,
+    # and ensures all four models are trained on exactly the same data.
+   
     print("Loading preprocessed splits from disk...")
     X_train = joblib.load(SPLITS_DIR / "X_train.joblib")
     y_train = joblib.load(SPLITS_DIR / "y_train.joblib")
@@ -72,6 +79,8 @@ def load_splits():
     return X_train, y_train, X_val, y_val
 
 def train(X_train, y_train, X_val, y_val):
+    # Train LightGBM with early stopping on validation AUC.
+    # Low learning rate (0.005) with 1000 estimators lets the model converge gradually, faster  than XGBoost on tabular data due to leaf-wise tree growth.
     print("\nTraining LightGBM model...")
 
     model = lgb.LGBMClassifier(**LGBM_PARAMS)

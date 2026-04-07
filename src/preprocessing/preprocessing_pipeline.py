@@ -35,6 +35,13 @@ def time_based_train_val_split(
 
 
 def run_full_pipeline(val_size: float = 0.2, save_artifacts: bool = True):
+    # Runs the full preprocessing pipeline and saves train/val splits to disk.
+    # Every transformer (imputer, encoder, feature selector) is fit on train only
+    # and applied to both sets — this is how we avoid data leakage throughout.
+    # Outlier removal is skipped intentionally: all four models are tree-based
+    # and handle skewed/extreme values natively without any scaling.
+
+
     # Merge transaction + identity data
     merged_df = merge_transaction_identity(
         TRAIN_TRANSACTION_FILE,

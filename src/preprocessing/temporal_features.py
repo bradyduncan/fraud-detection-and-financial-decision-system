@@ -1,6 +1,8 @@
 # Feature engineering for the temporal features 
 # src/temporal_features.py
 
+from pyexpat import features
+
 import numpy as np
 import pandas as pd
 
@@ -34,6 +36,16 @@ def add_temporal_features(
     add_velocity: bool = True,
     inplace: bool = False,
 ) -> pd.DataFrame:
+    
+    # Using temporal features for fraud detection because 
+    # Raw transaction attributes (amount, card type) capture what happened but not the behavioural context.
+    # Fraudsters typically show bursts of activity many transactions in a short  window, unusually high velocity, or a first-ever transaction on a card.
+    # Rolling-window aggregations over entity groups (card, address, email domain)  encode this context without leaking future information.
+
+    # Leakage prevention: all rolling windows use closed='left', meaning each transaction's window includes only transactions that occurred strictly before it. 
+    # This is critical when temporal features are computed on the combined train+val stream before splitting.
+
+
     print("\nAdding temporal features")
     if not inplace:
         df = df.copy(deep=False)

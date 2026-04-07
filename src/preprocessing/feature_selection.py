@@ -23,6 +23,12 @@ def _near_zero_variance_filter(
     protected = _get_protected(df)
     drop_cols = []
 
+    # Remove features with near-zero variance.
+
+    # Why remove these? Features where one value dominates (>98% of rows) or
+    # where fewer than 2 unique values exist carry almost no discriminative
+    # signal and can destabilise correlation-based methods downstream.
+
     for col in df.columns:
         if col in protected:
             continue

@@ -10,6 +10,7 @@ def _read_csv_arrow(path: str) -> pd.DataFrame:
         return pd.read_csv(path, low_memory=False)
 
 def merge_transaction_identity(transaction_file, identity_file, output_file=None):    
+    # Left-join identity onto transactions. Left join used because only ~48% of transactions have identity data — an inner join would throw away more than half the training set.
     # Load transaction data
     print("Loading transaction data")
     transaction_df = _read_csv_arrow(transaction_file)
@@ -72,6 +73,7 @@ def merge_transaction_identity(transaction_file, identity_file, output_file=None
     return merged_df
 
 def main():
+
     merged_df = merge_transaction_identity(
         TRAIN_TRANSACTION_FILE,
         TRAIN_IDENTITY_FILE,
