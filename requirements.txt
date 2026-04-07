@@ -13,3 +13,5 @@ pyarrow>=14.0
 matplotlib>=3.7
 streamlit>=1.32
 shap>=0.44
+plotly>=5.18
+pytest>=7.0

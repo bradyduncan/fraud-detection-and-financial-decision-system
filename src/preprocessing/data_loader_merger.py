@@ -3,7 +3,7 @@ from pathlib import Path
 from src.config import *
 
 def _read_csv_arrow(path: str) -> pd.DataFrame:
-    # Read CSV with pyarrow-backed dtypes to reduce peak memory usage.
+    # Read CSV using PyArrow backend to roughly halve peak memory on the 500k-row dataset.
     try:
         return pd.read_csv(path, engine="pyarrow", dtype_backend="pyarrow")
     except Exception:

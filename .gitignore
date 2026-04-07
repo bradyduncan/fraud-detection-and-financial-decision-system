@@ -14,7 +14,6 @@ data\processed\splits\*.joblib
 und_data.ipynb
 src\fraud_detection_models\lgbm_tune_scale_pos_weight.py
 .claude/
-**/ensemble_sweep.py
 !data/processed/predictions.csv
 !data\processed\shap_values.csv
 !data/processed/shap_feature_importance.csv

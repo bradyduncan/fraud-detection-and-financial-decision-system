@@ -21,9 +21,9 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Ensemble weights (must sum to 1.0)
 ENSEMBLE_WEIGHTS = {
-    "xgboost":   0.40,   # highest recall (0.73 on val set)
-    "lightgbm":  0.35,   # best precision (0.53 on val set)
-    "catboost":  0.20,   # middle ground, adds diversity
+    "xgboost":   0.25,   # highest recall (0.73 on val set)
+    "lightgbm":  0.40,   # best precision (0.53 on val set)
+    "catboost":  0.35,   # middle ground, adds diversity
 }
 
 

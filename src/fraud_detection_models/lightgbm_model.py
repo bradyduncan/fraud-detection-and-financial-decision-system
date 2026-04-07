@@ -99,6 +99,10 @@ def train(X_train, y_train, X_val, y_val):
     return model
 
 def evaluate(model, X_val, y_val, threshold=0.5):
+    # Evaluate on the validation set. Reports ROC-AUC, PR-AUC, recall, precision, and F1.
+    # Also sweeps thresholds to find the one that maximises F1 — more meaningful than default
+    # 0.5 when the fraud class is only ~3.5% of the data.
+
     print("LIGHTGBM EVALUATION RESULTS")
    
     # Predicted probabilities and labels
