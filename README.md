@@ -1,6 +1,8 @@
 # fraud-detection-and-financial-decision-system
 Intelligent Fraud Detection and Financial Decision Systems Using Ensemble Learning
 
+[Dashboard Link](https://fraud-detection-and-financial-decision-system.streamlit.app/)
+
 ## Setup Instructions
 ### Windows
 Run the PowerShell init function `.\init.ps1` to install all dependencies.
