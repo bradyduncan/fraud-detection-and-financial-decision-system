@@ -2,6 +2,13 @@
 # 1. Drop extreme missing columns (>90%)
 # 2. Impute remaining missing values
 
+# Note on Outlier Handling: 
+# Explicit outlier removal/capping is intentionally omitted.
+# All four models (LightGBM, XGBoost, CatBoost, HistGBM) are tree-based gradient
+# boosting methods, which are invariant to monotonic feature transformations and
+# robust to outliers by design (splits are based on rank order, not magnitude).
+# TransactionAmt is heavily right-skewed but preserved as-is; the models handle this natively.
+
 import pandas as pd
 import numpy as np
 import joblib
@@ -45,7 +52,7 @@ def drop_extreme_missing(df, threshold=90, output_file=None):
 
 # Phase 2: MissingValueImputer — fit on TRAIN only, transform any split
 class MissingValueImputer:
-    """
+    '''
     Learns imputation fill-values from training data only.
     Then applies the same fill-values to validation/test data.
 
@@ -56,7 +63,7 @@ class MissingValueImputer:
       - Bool columns                  → mode
       - Datetime columns              → median
       - Categorical / string / object → "Unknown"
-    """
+    '''
 
     def __init__(self):
         self.fill_values: dict = {}   # col → fill value
@@ -66,7 +73,6 @@ class MissingValueImputer:
         # Learn fill-values from df (should be the TRAINING set only).
         self.fill_values = {}
 
-        # --- V features ---
         v_features = [col for col in df.columns if col.startswith("V")]
         for col in v_features:
             if df[col].isnull().sum() == 0:
@@ -77,7 +83,6 @@ class MissingValueImputer:
             else:
                 self.fill_values[col] = df[col].median()
 
-        # --- All other columns ---
         for col in df.columns:
             if col in ["TransactionID", "isFraud"] or col.startswith("V"):
                 continue
@@ -152,7 +157,7 @@ class MissingValueImputer:
 
 # Kept for backwards compatibility
 def impute_missing_values(df, output_file=None):
-    """Legacy function — fits AND transforms on the same df (use MissingValueImputer for proper train/val workflow)."""
+    # egacy function — fits AND transforms on the same df (use MissingValueImputer for proper train/val workflow).
     imputer = MissingValueImputer()
     return imputer.fit_transform(df, output_file=output_file)
 

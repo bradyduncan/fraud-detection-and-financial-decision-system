@@ -71,9 +71,7 @@ def _compute_metrics(y_true: pd.Series, y_pred: np.ndarray, y_proba: np.ndarray)
 
 
 def _threshold_candidates_from_proba(y_proba: np.ndarray) -> np.ndarray:
-    """
-    Build threshold candidates from model scores using unique probabilities.
-    """
+    # Generate candidate thresholds from unique predicted probabilities, clipped to [0, 1].
     scores = np.asarray(y_proba, dtype=float)
     scores = scores[np.isfinite(scores)]
     if scores.size == 0:
@@ -115,9 +113,7 @@ def train_stage1_model(
     y_val: pd.Series,
     model_params: dict | None = None,
 ) -> XGBClassifier:
-    """
-    Train Stage 1 XGBoost model focused on recall.
-    """
+    # Train Stage 1 XGBoost model to identify potential frauds with high recall.
     params = {
         "n_estimators": 4000,
         "max_depth": 4,
@@ -154,9 +150,7 @@ def tune_stage1_threshold(
     min_recall: float = 0.9,
     thresholds: np.ndarray | None = None,
 ) -> tuple[float, pd.DataFrame]:
-    """
-    Tune Stage 1 threshold with recall constraint and precision-first selection.
-    """
+    #   Tune Stage 1 threshold to achieve target recall while maximizing precision/F1.
     thresholds = thresholds if thresholds is not None else _threshold_candidates_from_proba(y_proba)
     records = []
     for thresh in thresholds:
@@ -195,9 +189,7 @@ def build_stage2_dataset(
     stage1_threshold: float | None = None,
     add_meta_features: bool = True,
 ) -> tuple[pd.DataFrame, pd.Series]:
-    """
-    Build Stage 2 dataset using Stage 1 positives (hard negatives included).
-    """
+    # Build Stage 2 training dataset from Stage 1 positives, optionally adding Stage 1 meta features.
     mask = stage1_pred.astype(bool)
     if mask.sum() == 0:
         raise ValueError("Stage 1 produced zero positives; cannot train Stage 2.")
@@ -266,9 +258,7 @@ def train_stage2_model(
     calibration_cv: int = 3,
     sample_weight: np.ndarray | None = None,
 ):
-    """
-    Train Stage 2 classifier on Stage 1 positives.
-    """
+    # Train Stage 2 model to refine Stage 1 positives, with optional calibration and sample weighting.
     if model_type == "xgboost":
         params = dict(model_params) if model_params else {}
         if "scale_pos_weight" not in params:
@@ -297,9 +287,7 @@ def generate_oof_stage1_proba(
     stage1_params: dict | None = None,
     n_splits: int = 5,
 ) -> np.ndarray:
-    """
-    Generate out-of-fold Stage 1 probabilities for leakage-safe Stage 2 training.
-    """
+    # Generate out-of-fold predicted probabilities from Stage 1 model for the entire training set, using Stratified K-Fold.
     oof_proba = np.zeros(len(X_train), dtype=float)
     splitter = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=RANDOM_SEED)
 
@@ -323,9 +311,7 @@ def tune_stage2_threshold(
     min_cascade_recall: float | None = None,
     thresholds: np.ndarray | None = None,
 ) -> tuple[float, pd.DataFrame]:
-    """
-    Tune Stage 2 threshold to maximize final cascade F1 on validation data.
-    """
+    #  Tune Stage 2 threshold to maximize F1 while optionally enforcing a minimum recall on the cascade. Only evaluate Stage 2 thresholds on the subset of data routed to Stage 2 by Stage 1.
     if len(stage2_proba) == len(stage1_pred):
         stage2_proba_subset = stage2_proba[stage1_pred == 1]
     else:
@@ -369,9 +355,7 @@ def tune_cascade_thresholds(
     min_cascade_recall: float | None = None,
     add_meta_features: bool = True,
 ) -> tuple[float, float, pd.DataFrame]:
-    """
-    Jointly tune Stage 1 and Stage 2 thresholds for cascade F1.
-    """
+    # jointly tune Stage 1 and Stage 2 thresholds to maximize cascade F1 while optionally enforcing a minimum recall on the cascade. Evaluates all combinations of provided Stage 1 and Stage 2 thresholds.
     stage1_thresholds = stage1_thresholds if stage1_thresholds is not None else np.linspace(0.01, 0.99, 50)
     stage2_thresholds = stage2_thresholds if stage2_thresholds is not None else np.linspace(0.01, 0.5, 50)
     records = []
@@ -432,9 +416,7 @@ def predict_cascade(
     stage2_threshold: float,
     add_meta_features: bool = True,
 ) -> dict:
-    """
-    Predict with 2-stage cascade and return intermediate outputs.
-    """
+    # predict with the cascade: apply Stage 1 to all data, route positives to Stage 2, and combine predictions. Returns detailed outputs including probabilities, predictions, and routing mask.
     stage1_proba = stage1_model.predict_proba(X)[:, 1]
     stage1_pred = (stage1_proba >= stage1_threshold).astype(int)
 
@@ -477,9 +459,7 @@ def evaluate_cascade(
     stage2_threshold: float,
     add_meta_features: bool = True,
 ) -> dict:
-    """
-    Evaluate Stage 1, Stage 2 (subset), and final cascade metrics.
-    """
+    #evaluate the cascade on validation data, computing metrics for Stage 1 alone, Stage 2 alone (on routed subset), and the final cascade. Prints detailed metrics and returns a summary dictionary.
     outputs = predict_cascade(
         X_val,
         stage1_model,
@@ -550,9 +530,7 @@ def evaluate_cascade(
 
 
 def save_cascade_model(artifacts: dict, path: Path | None = None):
-    """
-    Save cascade artifacts (models, thresholds, config) to disk.
-    """
+    # Save cascade artifacts (models, thresholds, tuning results) to disk using joblib.
     path = path or (PROCESSED_DIR / "models" / "xgboost_cascade.joblib")
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(artifacts, path)
@@ -560,17 +538,12 @@ def save_cascade_model(artifacts: dict, path: Path | None = None):
 
 
 def load_cascade_model(path: Path | None = None) -> dict:
-    """
-    Load cascade artifacts from disk.
-    """
+    # Load cascade artifacts from disk using joblib. Returns a dictionary containing models, thresholds, and tuning results.
     path = path or (PROCESSED_DIR / "models" / "xgboost_cascade.joblib")
     return joblib.load(path)
 
 
 class FraudCascadeModel:
-    """
-    2-stage fraud detection cascade with threshold tuning and optional calibration.
-    """
 
     def __init__(
         self,

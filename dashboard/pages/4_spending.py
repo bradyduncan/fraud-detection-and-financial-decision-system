@@ -13,15 +13,13 @@ from dashboard.utils import (
     render_sidebar, metric_card, USER_COLORS
 )
 
-# ── Sidebar ────────────────────────────────────────────────────────────────
 user, card = render_sidebar()
 
-# ── Load data ──────────────────────────────────────────────────────────────
 df      = load_predictions()
 card_df = get_user_card_data(df, user, card).copy()
 color   = USER_COLORS.get(user, "#4f9cf9")
 
-# ── Derived columns ────────────────────────────────────────────────────────
+# Derived features
 card_df["transaction_date"] = pd.to_datetime(card_df["transaction_date"])
 card_df["month"]      = card_df["transaction_date"].dt.to_period("M").astype(str)
 card_df["week"]       = card_df["transaction_date"].dt.to_period("W").astype(str)
@@ -37,7 +35,6 @@ PRODUCT_MAP = {
 }
 card_df["product_label"] = card_df["ProductCD"].map(PRODUCT_MAP).fillna("Other")
 
-# ── Page Header ────────────────────────────────────────────────────────────
 st.markdown(f"""
 <div style='margin-bottom: 32px;'>
     <p style='font-size: 12px; color: #6b7280; text-transform: uppercase;
@@ -53,7 +50,7 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Top Metrics ────────────────────────────────────────────────────────────
+# Top Metrics 
 total_spent   = card_df["TransactionAmt"].sum()
 avg_tx        = card_df["TransactionAmt"].mean()
 max_tx        = card_df["TransactionAmt"].max()
@@ -78,7 +75,7 @@ with c4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Monthly Spending Trend ─────────────────────────────────────────────────
+# Monthly Spending Trend
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>
@@ -128,7 +125,7 @@ st.plotly_chart(fig_monthly, use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Two column: Product breakdown + Day of week ───────────────────────────
+# Product Category & Day of Week Analysis
 left, right = st.columns([1, 1], gap="large")
 
 with left:
@@ -213,7 +210,7 @@ with right:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Two column: Hour heatmap + Transaction size distribution ──────────────
+# Hour heatmap and transaction size distribution
 left2, right2 = st.columns([1, 1], gap="large")
 
 with left2:
@@ -291,7 +288,7 @@ with right2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Spending Insights Summary ──────────────────────────────────────────────
+# Summary of spending insights
 st.markdown("""
 <p style='font-family: Syne, sans-serif; font-size: 16px;
           font-weight: 700; margin-bottom: 12px;'>

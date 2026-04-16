@@ -7,6 +7,11 @@ from src.config import *
 
 class CategoricalEncoder:
     # Fits LabelEncoders on the TRAINING set only.
+    # Why fit on train only? Fitting the encoder on the full dataset would expose
+    # validation-set category distributions to the training process — a form of
+    # data leakage. By fitting only on training data and mapping unseen validation
+    # categories to -1, we ensure the encoder behaves the same way in production
+    # where new category values may appear after model training.
     # Call .fit() on train, then .transform() on both train and val/test.
     
     def __init__(self):
@@ -31,6 +36,12 @@ class CategoricalEncoder:
         return self
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        #  Apply fitted label encodings to a DataFrame.
+
+        # Unseen categories (present in val/test but not in training) are mapped
+        # to -1 rather than raising an error, making the encoder production-safe.
+
+        
         df_encoded = df.copy()
 
         for col in self.categorical_columns:
@@ -73,7 +84,7 @@ class CategoricalEncoder:
 
 
 def encode_categorical(df, output_file=None, target_col="isFraud"):
-    # Legacy convenience function — fits and transforms on the same df.
+
     encoder = CategoricalEncoder()
     df_encoded = encoder.fit_transform(df, target_col=target_col)
     if output_file:

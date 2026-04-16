@@ -39,9 +39,9 @@ def train_and_evaluate(
     threshold: float = 0.5,
     model_params: dict | None = None,
 ):
-    """
-    Train CatBoost on train set and evaluate on validation set.
-    """
+
+    # Train CatBoost on train set and evaluate on validation set.
+    
     params = {
         "iterations": 4000,
         "depth": 6,
@@ -102,9 +102,6 @@ def train_and_evaluate(
 
 
 def save_model(model: CatBoostClassifier, path: Path | None = None):
-    """
-    Save trained model.
-    """
     path = path or (PROCESSED_DIR / "models" / "catboost.joblib")
     path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(model, path)

@@ -11,9 +11,7 @@ def sweep_thresholds(
     y_proba: np.ndarray,
     thresholds: list[float] | None = None,
 ):
-    """
-    Sweep thresholds and report precision/recall/F1.
-    """
+    # Sweep across classification thresholds and compute precision/recall/F1 for each.
     if thresholds is None:
         thresholds = [round(t, 2) for t in np.arange(0.05, 0.96, 0.05)]
 
@@ -52,9 +50,9 @@ def test_scale_pos_weights(
     threshold: float = 0.7,
     base_params: dict | None = None,
 ):
-    """
-    Train XGBoost models across scale_pos_weight values and report metrics.
-    """
+    
+    # Train XGBoost models across scale_pos_weight values and report metrics.
+    
     params = {
         "n_estimators": 300,
         "max_depth": 6,
